@@ -19,7 +19,7 @@ void Ping::onBaseMsg(std::shared_ptr<BaseMsg> msg)
 	if (msg->cmd == "ping") {
 		std::string target = "ping" + std::to_string(rand() % 4 + 1);
 
-		printf("source: [%s], here: [%s] \n", msg->source_service.data(), name);
+		printf("source: [%s], here: [%s], diff time:[%ld]\n", msg->source_service.data(), name, time(NULL) - msg->time);
 		global_service->send(name, target.data(), "ping");
 	}
 }

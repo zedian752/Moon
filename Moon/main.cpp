@@ -14,15 +14,16 @@
 int main()
 {
     GlobalService* global_service = GlobalService::instance();
-    Ping p1("ping1");
-    Ping p2("ping2");
-    Ping p3("ping3");
-    Ping p4("ping4");
-    global_service->services["ping1"] = &p1;
-    global_service->services["ping2"] = &p2;
-    global_service->services["ping3"] = &p3;
-    global_service->services["ping4"] = &p4;
-    p1.send("ping2", "ping");
+    Ping * p1 = new Ping("ping1");
+    Ping * p2 = new Ping("ping2");
+    Ping * p3 = new Ping("ping3");
+    Ping * p4 = new Ping("ping4");
+    global_service->newservice("ping1", p1);
+    global_service->newservice("ping2", p2);
+    global_service->newservice("ping3", p3);
+    global_service->newservice("ping4", p4);
+
+    p1->send("ping2", "ping");
     // TODO 主线程用于接收网络请求
     while (true)
     {

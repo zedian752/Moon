@@ -11,6 +11,10 @@
 #include "Node.h"
 #include "Worker.h"
 
+
+
+
+
 class GlobalService {
 private:
 	pthread_spinlock_t spin_lock;
@@ -28,6 +32,7 @@ public:
 	
 	/* */
 	std::vector<Worker> workers;
+
 	/* 总线程数量 */
 	int total_worker_amount = 4;
 
@@ -41,6 +46,6 @@ public:
 	std::unordered_map<std::string, Node*> services;
 
 	void send(std::string src, std::string target, const char* cmd);
-	
-
+	void newservice(std::string, Node*);
+	void removeService(std::string name);
 };

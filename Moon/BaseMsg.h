@@ -7,5 +7,10 @@ public:
 	string cmd;
 	// 源服务
 	string source_service;
+
+	/* debug_field */
+	int trace_id;
+	/* debug_field */
+	long time;
 };
 

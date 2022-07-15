@@ -2,6 +2,7 @@
 #include <thread>
 #include <iostream>
 #include <memory>
+#include "Utils.h"
 
 void GlobalService::pushNode(Node* node)
 { 
@@ -35,6 +36,8 @@ void GlobalService::send(std::string src, std::string target, const char* cmd)
 	std::shared_ptr<BaseMsg> basemsg  = std::make_shared<BaseMsg>();
 	basemsg->cmd = cmd;
 	basemsg->source_service = src;
+	basemsg->trace_id = Utils::getIncrement();
+	basemsg->time = time(NULL);
 	/* 投递信息 */
 	//auto node = services.at(target);
 	auto node = services[target];
@@ -62,6 +65,23 @@ void GlobalService::send(std::string src, std::string target, const char* cmd)
 	
 }
 
+void GlobalService::newservice(std::string name, Node* node)
+{
+	services[name] = node;
+}
+
+void GlobalService::removeService(std::string name)
+{
+	auto it = services.find(name);
+	auto node = it->second;
+
+	if (node != nullptr) {
+		services.erase(name);
+		delete node;
+	}
+}
+
+/* 目前限制为一个进程只有一个service */
 GlobalService* GlobalService::instance()
 {
 	static GlobalService global_sercice;

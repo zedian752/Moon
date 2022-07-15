@@ -80,6 +80,7 @@
     <ClCompile Include="GlobalService.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Ping.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="Worker.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -87,6 +88,7 @@
     <ClInclude Include="GlobalService.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Ping.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="Worker.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

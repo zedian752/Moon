@@ -5,6 +5,7 @@
     <ClCompile Include="Ping.cpp">
       <Filter>Service</Filter>
     </ClCompile>
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Service">
@@ -15,5 +16,6 @@
     <ClInclude Include="Ping.h">
       <Filter>Service</Filter>
     </ClInclude>
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
 </Project>
