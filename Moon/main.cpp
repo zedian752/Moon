@@ -2,9 +2,9 @@
 #include "GlobalService.h"
 #include "Worker.h"
 #include <unistd.h>
-
+#include <algorithm> 
 #include "Ping.h"
-
+#include <time.h>
 
 /*
     架构，线程池，全局消息队列，
@@ -16,15 +16,27 @@ int main()
     GlobalService* global_service = GlobalService::instance();
     Ping p1("ping1");
     Ping p2("ping2");
+    Ping p3("ping3");
+    Ping p4("ping4");
     global_service->services["ping1"] = &p1;
     global_service->services["ping2"] = &p2;
+    global_service->services["ping3"] = &p3;
+    global_service->services["ping4"] = &p4;
     p1.send("ping2", "ping");
     // TODO 主线程用于接收网络请求
     while (true)
     {
-        // TODO 定时检查
-        sleep(1000);
-
+        usleep(1000); // 1000us = 1ms
+        if (!global_service->global_queue.empty()) {
+            auto idle_num = global_service->total_worker_amount - global_service->worker_num.load();
+            if (idle_num > 0) {
+                int trigger_num  = std::min( static_cast<int>(global_service->global_queue.size()), idle_num);
+                while (trigger_num-- > 0) {
+                    printf("通过while循环触发 %d\n", trigger_num);
+                    global_service->cv_ready.notify_one();
+                }
+            }
+        }
     }
 
     return 0;

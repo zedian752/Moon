@@ -1,6 +1,6 @@
 #include "GlobalService.h"
 #include <thread>
-
+#include <iostream>
 #include <memory>
 
 void GlobalService::pushNode(Node* node)
@@ -29,6 +29,7 @@ GlobalService::GlobalService()
 	init();
 }
 
+// Core function
 void GlobalService::send(std::string src, std::string target, const char* cmd)
 {
 	std::shared_ptr<BaseMsg> basemsg  = std::make_shared<BaseMsg>();
@@ -47,14 +48,15 @@ void GlobalService::send(std::string src, std::string target, const char* cmd)
 	/* 已经在遍历执行了*/
 	else if (node->isInGlobalQueue) {
 		/* 防止任务没有全部完成的情况 */
-		pushNode(node);
+		//pushNode(node);
+		std::cout << node->name <<"已经在全局队列内" << std::endl;
 		return;
 	}
 	else {
 		/* 推进全进消息队列 */
 		pushNode(node);
 		cv_ready.notify_one();
-		worker_num.fetch_add(1);
+		std::cout << "current working num" << worker_num.fetch_add(1) << std::endl;
 	}
 
 	
