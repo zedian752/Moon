@@ -4,7 +4,7 @@
 /*
 	 返回值:
 		0 全部发送完成
-		2 还有剩余
+		2 数据发送不完全, epoll读写模式保持为读加写
 */
 int WriteBuffer::Write(int fd)
 {
@@ -17,12 +17,16 @@ int WriteBuffer::Write(int fd)
 	{
 		std::string * res =  msg_queue.front();
 		int size = res->size() - write_index; //
-		int send = write(fd, res->data() + write_index, size);
-		if (send != size) {
-			// 
-			write_index += send;
-			return 1;
+		int ret = write(fd, res->data() + write_index, size);
+
+		if (ret < 0 && (ret == EAGAIN || ret == EWOULDBLOCK)) {
+			return 2;
 		}
+		if (ret != size) {
+			write_index += ret;
+			return 2;
+		}
+
 		// 发送完整后重置
 		write_index = 0;
 		msg_queue.pop();
@@ -34,5 +38,14 @@ int WriteBuffer::Write(int fd)
 int WriteBuffer::push_response(std::string * res)
 {
 	msg_queue.push(res);
+	return 0;
+}
+
+int WriteBuffer::clear_queue()
+{
+	while (!msg_queue.empty()) {
+		delete msg_queue.front();
+		msg_queue.pop();
+	}
 	return 0;
 }

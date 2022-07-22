@@ -1,5 +1,6 @@
 #pragma once
 #include <string.h>
+#include <string>
 
 /*
 读缓存区
@@ -26,17 +27,18 @@ public:
 	int write_index = 0;
 	/* 该数据包已读取的数据量大小 */
 	//int content_size = 0;
-	unsigned int msg_size = -1;
+	int msg_size = -1;
 	// 当前包的包头位置
-	int msg_header_loca = -1;
+	//int msg_header_loca = -1;
 	/* 固定前四个字节作为消息长度 */
 	const int header_length = 4;
 	ReadBuffer();
 	ReadBuffer(int buffer_size);
-	
-	~ReadBuffer();
 
-	int Read(int fd);
+	std::pair<int, std::string*> Read(int fd);
+	
+
+	~ReadBuffer();
 
 };
 
