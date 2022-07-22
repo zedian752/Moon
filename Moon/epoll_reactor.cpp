@@ -1,5 +1,56 @@
 
 #include "epoll_reactor.h"
+#include <sstream>
+#include <string>
+#include <iostream>
+
+epoll_reactor::epoll_reactor()
+{
+	init();
+}
+
+void epoll_reactor::init()
+{
+	/* 初始化读写锁 */
+	pthread_rwlock_init(&self_evnets_ctl_rw_lock, NULL);
+}
+
+self_event*  epoll_reactor::get_self_event(int fd)
+{
+	self_event* se = nullptr;
+	pthread_rwlock_rdlock(&self_evnets_ctl_rw_lock);
+    se = self_events[fd];
+	pthread_rwlock_unlock(&self_evnets_ctl_rw_lock);
+	return se;
+
+}
+
+int epoll_reactor::remove_self_event(int fd)
+{
+	pthread_rwlock_wrlock(&self_evnets_ctl_rw_lock);
+	{
+		self_events.erase(fd);
+		delete self_events[fd];
+	}
+	pthread_rwlock_unlock(&self_evnets_ctl_rw_lock);
+
+
+	return 0;
+}
+
+int epoll_reactor::add_self_event(int fd, self_event*& e)
+{
+	if (e == nullptr) {
+		return -1;
+	}
+	pthread_rwlock_wrlock(&self_evnets_ctl_rw_lock);
+	{
+		self_events[fd] = e;
+	}
+	pthread_rwlock_unlock(&self_evnets_ctl_rw_lock);
+
+	return 0;
+}
 
 void epoll_reactor::init_socket() {
 	{
@@ -19,9 +70,9 @@ void epoll_reactor::init_socket() {
 
 		/* 初始化监听fd */
 		self_event* l_event = new self_event(g_lfd, nullptr);
-		self_events[g_lfd] = l_event;
+		add_self_event(g_lfd, l_event);
 		//self_events[MAX_EVENTS] = self_event(g_lfd, nullptr);
-		event_add(EPOLLIN | EPOLLET, self_events[g_lfd]); // 将结构体加入到epoll中
+		event_add(EPOLLIN | EPOLLET, get_self_event(g_lfd)); // 将结构体加入到epoll中
 	}
 
 };
@@ -52,21 +103,27 @@ void epoll_reactor::event_modify(int events, self_event* se) {
 }
 
 void epoll_reactor::event_remove(self_event* ev) {
-	self_events.erase(ev->fd);
-	delete self_events[ev->fd];
+
+	remove_self_event(ev->fd);
 	int res = epoll_ctl(g_epfd, EPOLL_CTL_DEL, ev->fd, NULL);
 }
 
 void epoll_reactor::on_send_data(int cfd, int events, void* arg)
 {
 	self_event* se = (self_event*)arg;
-	int idx = 0;
+	// 已经被关闭了
+	if (get_self_event(cfd) == nullptr) {
+		se->client.m_write_buffer.clear_queue();
+		return;
+	}
+
 	int len = se->client.m_write_buffer.Write(cfd);
 
 	if (len < 0) {
 		NetworkUtils::print_backtrace();
-		close(cfd);
 		event_remove(se);
+		close(cfd);
+		se->client.m_write_buffer.clear_queue();
 		return;
 	}
 	///
@@ -88,7 +145,9 @@ void epoll_reactor::on_accept_conn(int lfd, int events, void* arg)
 		log_error("连接池已满");
 		return;
 	}
-	self_events[cfd] = new self_event(cfd, NULL); // 初始化lfd的event结构体
+	self_event* client = new self_event(cfd, NULL);
+	add_self_event(cfd, client);// 初始化lfd的event结构体
+	//self_events[cfd] = ; 
 	//self_event_constructor(&self_events[index], cfd, on_recv_data, NULL); // 初始化lfd的event结构体
 	event_add(EPOLLIN | EPOLLET, self_events[cfd]); // 将结构体加入到epoll中
 }
@@ -99,6 +158,7 @@ void epoll_reactor::on_recv_data(int cfd, int events, void* arg)
 	/* 这里的读回调函数不再做业务了，只做read的异常处理 */
 	auto ret = se->client.m_read_buffer.Read(cfd);
 	if (ret.first <= 0) {
+		/* remove要在close前做，能防止多线程造成的增删冲突*/
 		event_remove(se);
 		int res = close(cfd);
 		printf("关闭的cfd=[%d] ret=[%d]\n", cfd, res);
@@ -109,7 +169,7 @@ void epoll_reactor::on_recv_data(int cfd, int events, void* arg)
 	if (ret.first == 2) {
 		se->client.m_write_buffer.push_response(ret.second);
 		//se->callback = on_send_data;
-		event_modify(EPOLLOUT | EPOLLET, se);
+		event_modify(EPOLLOUT | EPOLLET | EPOLLIN, se);
 
 	}
 
@@ -117,8 +177,6 @@ void epoll_reactor::on_recv_data(int cfd, int events, void* arg)
 
 int epoll_reactor::epoll_start()
 {
-	//bzero(self_events, MAX_EmVENTS * sizeof(self_event));
-	//epoll_reactor er;
 	g_epfd = epoll_create(MAX_EVENTS + 1);
 	if (g_epfd == -1) {
 		perror("");
@@ -141,16 +199,19 @@ int epoll_reactor::epoll_start()
 			//if (se->events != se->events) {
 			//	//    printf("警告！");
 			//}
-
-			if (events[i].events & EPOLLIN) { // on_accept_conn或on_recv_data
-				log_info("read event");
+			if (events[i].events & EPOLLHUP || events[i].events & EPOLLERR) {
+				std::stringstream ss;
+				ss << (events[i].events & EPOLLHUP ? "[EPOLLHUP] " : "") << (events[i].events & EPOLLERR ? "[EPOLLERR]" : "");
+				log_error(ss.str().data());
+			}
+			else if (events[i].events & EPOLLIN) { // on_accept_conn或on_recv_data
+				std::cout << (se->fd == g_lfd ? "listen event" : "read event") << std::endl;
 				job_thread_pool->add_task([&]() -> void {
 					if (se->fd == g_lfd) { // 连接事件
 						on_accept_conn(se->fd, se->events, se);
 					}
 					else {
 						on_recv_data(se->fd, se->events, se);
-
 					}
 					});
 			}
@@ -167,11 +228,7 @@ int epoll_reactor::epoll_start()
 }
 
 
-
-
 /* self_event:start*/
-//self_event::self_event() {}
-
 self_event::self_event(int fd, void* arg) :fd(fd), arg(arg) {
 	init();
 }

@@ -18,14 +18,10 @@
 
 
 constexpr int MAX_EVENTS = 1024;
-constexpr int BUFLEN = 4096;
+//constexpr int BUFLEN = 4096;
 
 /* 线程池 */
 static ThreadPool* job_thread_pool = GlobalComponent::thread_pool();
-class epoll_reactor;
-class self_event;
-using reactor_cb_t = void(epoll_reactor* er, int cfd, int events, void* arg);
-
 
 // 在epoll_ctl的时候赋值，能在遍历epoll回调的时候取出
 class self_event { 
@@ -55,21 +51,25 @@ public:
 	/* listen fd */
 	int g_lfd;
 	int port = 6666;
+	epoll_reactor();
+	void init();
 	/* fd -> self_event* */
 	std::unordered_map<int, self_event*> self_events; 
-	//self_event self_events[MAX_EVENTS + 1];// 具体节点
-
-
+	pthread_rwlock_t self_evnets_ctl_rw_lock;
+	self_event* get_self_event(int fd);
+	int remove_self_event(int fd);
+	int add_self_event(int fd, self_event*& e);
+	//
 	void init_socket();
 	/* 操作epoll红黑树 */
 	void event_add(int events, self_event* se);
 	void event_modify(int events, self_event* se);
-
 	void event_remove(self_event* ev);
-
+	//
 	void on_send_data(int cfd, int events, void* arg);
 	void on_accept_conn(int lfd, int events, void* arg);
 	void on_recv_data(int cfd, int events, void* arg);
+	//
 	int epoll_start();
 };
 
