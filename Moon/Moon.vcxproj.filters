@@ -5,17 +5,135 @@
     <ClCompile Include="Ping.cpp">
       <Filter>Service</Filter>
     </ClCompile>
-    <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="LuaBase.cpp">
+      <Filter>LuaConnector</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseMsg.cpp" />
+    <ClCompile Include="GlobalService.cpp" />
+    <ClCompile Include="Node.cpp" />
+    <ClCompile Include="Worker.cpp" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Utils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkUtils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="epoll_reactor.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Base\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalComponent.cpp" />
+    <ClCompile Include="Social.pb.cc">
+      <Filter>ProtoBuf</Filter>
+    </ClCompile>
+    <ClCompile Include="UdpWriteBuffer.cpp">
+      <Filter>Buffer\Udp</Filter>
+    </ClCompile>
+    <ClCompile Include="UdpReadBuffer.cpp">
+      <Filter>Buffer\Udp</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpWriteBuffer.cpp">
+      <Filter>Buffer\Tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpReadBuffer.cpp">
+      <Filter>Buffer\Tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="WriteBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Service">
       <UniqueIdentifier>{beb0f0af-d240-4d28-b33d-c61001c40e12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LuaConnector">
+      <UniqueIdentifier>{844dbc82-9d22-4411-9de2-7996634eb2c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{374e2032-72b9-4921-8942-4bcdb3dbc73d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Base">
+      <UniqueIdentifier>{78abd0fd-d97b-4958-8e80-7f27a81ff580}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Base\Log">
+      <UniqueIdentifier>{b312d568-e6dc-4624-8fef-47d61d760a9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ProtoBuf">
+      <UniqueIdentifier>{dd57c87c-5a07-437c-b3a6-f772e298c2dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer">
+      <UniqueIdentifier>{42d53b35-9854-4ff5-990d-f4ae702a7094}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer\Tcp">
+      <UniqueIdentifier>{9f78cae4-0b4d-43a8-a6d8-bee521f34132}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer\Udp">
+      <UniqueIdentifier>{9dca1341-1083-4912-add6-7ca48a7b6c91}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ping.h">
       <Filter>Service</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h" />
+    <ClInclude Include="LuaBase.h">
+      <Filter>LuaConnector</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseMsg.h" />
+    <ClInclude Include="GlobalService.h" />
+    <ClInclude Include="Node.h" />
+    <ClInclude Include="Worker.h" />
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="Utils.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkUtils.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="epoll_reactor.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="LogUtils.h">
+      <Filter>Base\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Base\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalComponent.h" />
+    <ClInclude Include="Social.pb.h">
+      <Filter>ProtoBuf</Filter>
+    </ClInclude>
+    <ClInclude Include="UdpWriteBuffer.h">
+      <Filter>Buffer\Udp</Filter>
+    </ClInclude>
+    <ClInclude Include="UdpReadBuffer.h">
+      <Filter>Buffer\Udp</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpWriteBuffer.h">
+      <Filter>Buffer\Tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpReadBuffer.h">
+      <Filter>Buffer\Tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="WriteBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalEnum.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
