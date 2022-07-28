@@ -8,15 +8,21 @@
 
 class TcpReadBuffer
 {
+	// 回收无效内存
+	int recover();
 public:
 	using Byte = char;
 	/* 缓冲区 */
 	Byte* buffer;
 	/* 总容量 */
 	int capacity;
+
+	int init_size = 1024;
 	//int factor = 0.75;
 	/* 当前的读取游标处于buffer区的哪个位置 */
 	int write_index = 0;
+
+	int read_index = 0; // 在此游标之前的数据都是已经被读取的数据。 /* 解决了，每次处理完一个数据包之后都要memcpy的问题，除此以外还可以利用read固定字节数的办法来解决减少memcpy的次数，但是会增加read的次数*/
 	/* 该数据包已读取的数据量大小 */
 	//int content_size = 0;
 	int msg_size = -1;

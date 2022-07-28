@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include "LogUtils.h"
 
 static constexpr int MAX_CONTENT_SIZE = 10000;
 static int table_size_for(int size) {
@@ -18,7 +19,7 @@ static int table_size_for(int size) {
 
 int TcpReadBuffer::reset()
 {
-	write_index = 0;
+	//write_index = 0;
 	msg_size = -1;
 	return 0;
 }
@@ -44,9 +45,19 @@ void TcpReadBuffer::init_buffer(int buffer_size)
 	capacity = buffer_size;
 }
 
+int TcpReadBuffer::recover()
+{
+	auto alive_byte_size = write_index - read_index; //还有用的字节数
+	memcpy(buffer, buffer + read_index, alive_byte_size);
+	read_index = 0; // 下标重置
+	write_index -= alive_byte_size; // 下标左移
+
+	return 0;
+}
+
 TcpReadBuffer::TcpReadBuffer()
 {
-	init_buffer(1024);
+	init_buffer(init_size);
 }
 
 
@@ -83,6 +94,7 @@ std::pair<int, std::shared_ptr<std::string>> TcpReadBuffer::Read(int fd) {
 				return { ret, nullptr };
 			}
 		}
+
 		write_index += ret;
 
 		/* 读取消息头 */
@@ -92,22 +104,35 @@ std::pair<int, std::shared_ptr<std::string>> TcpReadBuffer::Read(int fd) {
 		}
 		else {
 			if (msg_size == -1) { /* 解包头 */
-				unsigned int* msg_length = (unsigned int*)buffer;
+				unsigned int * msg_length = (unsigned int*)buffer;
 				msg_size = *msg_length;
 				/* 防止消息体过大 */
 				if (msg_size > MAX_CONTENT_SIZE) {
 					return { -1 , nullptr };
 				}
-				/* 判断需不需要要进行扩容 */
-				if (msg_size > rest_size()) {
-					expand(msg_size);
-				}
+		
 			}
 		}
 		/* 读取消息体 */
 		if (msg_size != -1 && write_index >= msg_size + header_length) {
+
+			/* 判断需不需要要进行扩容, 能通过回收废弃字节就先回收，不行就回收 + 扩容 */
+			auto rest_s = rest_size();
+			if (msg_size > rest_s) {
+				if (msg_size <= rest_s + read_index) {
+					// 回收read_index
+					recover();
+				}
+				else {
+					// 回收read_index + 扩容
+					recover();
+					expand(msg_size);
+				}
+			}
+			/* 拷贝消息体数据 */
 			char* msg = new char[msg_size];
 			memcpy(msg, buffer + header_length, msg_size);
+			read_index += header_length + msg_size;
 			reset();
 			// 处理业务
 			//std::shared_ptr<std::string>
